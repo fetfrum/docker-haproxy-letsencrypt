@@ -1,9 +1,10 @@
-FROM debian:stretch
-MAINTAINER bringnow team <wecare@bringnow.com>
+FROM ubuntu:trusty
+MAINTAINER Igor V. Kruglenko <igor.kruglenko@gmail.com>
 
-ARG DEBIAN_FRONTEND=noninteractive
+ARG UBUTNU_FRONTEND=noninteractive
 ARG ACME_PLUGIN_VERSION=0.1.1
 
+VOLUME /etc/haproxy
 RUN buildDeps='curl ca-certificates' runtimeDeps='haproxy inotify-tools lua-sec rsyslog' \
 	&& apt-get update && apt-get upgrade -y && apt-get install -y $buildDeps $runtimeDeps --no-install-recommends \
 	&& curl -sSL https://github.com/janeczku/haproxy-acme-validation-plugin/archive/${ACME_PLUGIN_VERSION}.tar.gz -o acme-plugin.tar.gz \
@@ -12,12 +13,11 @@ RUN buildDeps='curl ca-certificates' runtimeDeps='haproxy inotify-tools lua-sec 
 	&& apt-get purge -y --auto-remove $buildDeps \
 	&& rm -rf /var/lib/apt/lists/*
 
-EXPOSE 80 443
+EXPOSE 80 443 8080
 
 COPY entrypoint.sh /
 
 VOLUME /etc/letsencrypt
-VOLUME /etc/haproxy
 VOLUME /var/acme-webroot
 
 ENTRYPOINT ["/entrypoint.sh"]
