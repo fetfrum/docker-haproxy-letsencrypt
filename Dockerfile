@@ -17,6 +17,7 @@ EXPOSE 80 443
 COPY entrypoint.sh /
 
 VOLUME /etc/letsencrypt
+VOLUME /etc/haproxy
 VOLUME /var/acme-webroot
 
 ENTRYPOINT ["/entrypoint.sh"]
