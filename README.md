@@ -40,12 +40,28 @@ frontend https
   reqadd X-Forwarded-Proto:\ https
 	rspadd Strict-Transport-Security:\ max-age=15768000
 
+frontend http-in
+  mode http
+  bind *:443 ssl crt /etc/haproxy/certificate.pem
+  default_backend rancher_servers
+
+  # Add headers for SSL offloading
+  http-request set-header X-Forwarded-Proto https if { ssl_fc }
+  http-request set-header X-Forwarded-Ssl on if { ssl_fc }
+
+  acl is_websocket hdr(Upgrade) -i WebSocket
+  acl is_websocket hdr_beg(Host) -i ws
+  use_backend rancher_servers if is_websocket
+
 use_backend		www	if { hdr(host) example.com or www.example.com }
 
 backend www
 	redirect prefix	https://www.example.com code 301 unless { hdr(host) www.example.com }
 	option forwardfor
 	server node1 127.0.0.1:6000
+backend rancher_servers
+  server websrv1 <rancher_server_1_IP>:8080 weight 1 maxconn 1024
+
 ```
 
 ## Logging
